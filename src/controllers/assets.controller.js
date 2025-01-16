@@ -1,9 +1,33 @@
-const assetsService = require('../services/assets.service');
+const assetsService = require("../services/assets.service");
 
+const uploadTest = async (req, res, next) => {
+  try {
+    const image =
+      "D:/Codigos/aem-local/node-cascaron/src/assets/images/image.jpg";
+    res.json(await assetsService.handleStaticImage(image));
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Recibe los datos en forma de formData, imagen es un file
+ * @param {*} req
+ * @param {*} res
+ * @param {*} next
+ */
 const upload = async (req, res, next) => {
   try {
-    const image = 'D:/Codigos/aem-local/node-cascaron/src/assets/images/image.jpg';
-    res.json(await assetsService.uploadImage(image));
+    const {
+      nombre,
+      correo,
+      especializacion,
+      experiencia,
+      susbricirse,
+      imagen,
+    } = req.body;
+
+    res.json(await assetsService.handleImageFile(imagen));
   } catch (error) {
     next(error);
   }
@@ -11,4 +35,5 @@ const upload = async (req, res, next) => {
 
 module.exports = {
   upload,
+  uploadTest,
 };

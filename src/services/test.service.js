@@ -12,26 +12,25 @@ const getMultiple = async (page = 1) => {
   //     meta,
   // };
 
-  return 'Get multiple successfull';
+  return "Get multiple successfull";
 };
 
 const create = async (data) => {
   // create logic
-  return 'Create successfull';
+  return data;
 };
 
 const update = async (id, data) => {
   // update logic
 
-  // Example of uncaught exception
   unknown.toString();
 
-  return 'Update successfull';
+  return "Update successfull";
 };
 
 const remove = async (id) => {
   // remove logic
-  return 'Delete successfull';
+  return "Delete successfull";
 };
 
 module.exports = {
