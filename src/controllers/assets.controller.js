@@ -18,16 +18,7 @@ const uploadTest = async (req, res, next) => {
  */
 const upload = async (req, res, next) => {
   try {
-    const {
-      nombre,
-      correo,
-      especializacion,
-      experiencia,
-      susbricirse,
-      imagen,
-    } = req.body;
-
-    res.json(await assetsService.handleImageFile(imagen));
+    res.json(await assetsService.handleFileImages(req.files));
   } catch (error) {
     next(error);
   }
