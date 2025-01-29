@@ -1,10 +1,18 @@
-const { aemAssetsPath, aemAssetsUrl } = require("../configs/env.config");
+const {
+  aemAssetsPath,
+  aemAssetsUrl,
+  aemUsername,
+  aemPassword,
+} = require("../configs/env.config");
 const DirectBinary = require("@adobe/aem-upload");
 const { deleteFile } = require("../utils/delete.file");
 const axios = require("axios");
 
 const DESTIONATION_URL = `${aemAssetsUrl}/${aemAssetsPath}`;
-const CREDENTIALS = Buffer.from("admin:admin", "utf8").toString("base64");
+const CREDENTIALS = Buffer.from(
+  `${aemUsername}:${aemPassword}`,
+  "utf8"
+).toString("base64");
 
 /**
  * Upload image to AEM Assets
@@ -38,8 +46,7 @@ const handleAssets = async (files) => {
     const result = await uploadImage(images);
     return result;
   } catch (err) {
-    console.error("Error during upload:", err);
-    throw new Error("Something went wrong during the upload process");
+    return err;
   } finally {
     files.forEach((file) => deleteFile(file.path));
   }
@@ -62,8 +69,7 @@ const uploadImage = async (uploadFiles) => {
     const result = await upload.uploadFiles(options);
     return result;
   } catch (err) {
-    console.error("Error during upload:", err);
-    throw new Error("Something went wrong during the upload process");
+    return err;
   }
 };
 
@@ -119,9 +125,7 @@ const updateMetadata = async (folder, asset, metadata) => {
 
     return resp.data;
   } catch (error) {
-    console.log(error);
-
-    throw new Error("Error updating metadata");
+    return error;
   }
 };
 

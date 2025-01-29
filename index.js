@@ -15,7 +15,6 @@ app.use(morgan("dev"));
 
 // Routes
 app.get(`/${prefix}`, (req, res) => res.json({ message: "ok" }));
-app.use(`/${prefix}/test`, require("./src/routes/test.route"));
 app.use(`/${prefix}/assets`, require("./src/routes/assets.route"));
 
 // Error handler
