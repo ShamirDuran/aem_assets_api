@@ -1,45 +1,17 @@
 const { aemAssetsPath, aemAssetsUrl } = require("../configs/env.config");
 const DirectBinary = require("@adobe/aem-upload");
-const { v4: uuidv4 } = require("uuid");
 const { deleteFile } = require("../utils/delete.file");
+const axios = require("axios");
 
 const DESTIONATION_URL = `${aemAssetsUrl}/${aemAssetsPath}`;
 const CREDENTIALS = Buffer.from("admin:admin", "utf8").toString("base64");
-
-/**
- * Upload static image to AEM Assets
- * @param {*} image Static image saved in the project
- * @returns
- */
-const handleStaticImage = async (image = "") => {
-  try {
-    const fileExtension = image.split(".").pop();
-    const fileName = `${uuidv4()}.${fileExtension}`;
-    const fileSize = fs.statSync(image).size;
-    const filePath = image;
-
-    const uploadFiles = [
-      {
-        fileName,
-        fileSize,
-        filePath,
-      },
-    ];
-
-    const result = await uploadImage(uploadFiles);
-    return result;
-  } catch (err) {
-    console.error("Error during upload:", err);
-    throw new Error("Something went wrong during the upload process");
-  }
-};
 
 /**
  * Upload image to AEM Assets
  * @param {*} image Multer file object
  * @returns
  */
-const handleFileImages = async (files) => {
+const handleAssets = async (files) => {
   try {
     if (!files || files.length === 0) {
       throw new Error("No files to upload");
@@ -95,7 +67,82 @@ const uploadImage = async (uploadFiles) => {
   }
 };
 
+/**
+ * Crear un folder en aem assets
+ * @param {*} name Identificador del folder a crear ex: folder-name
+ * @param {*} title Nombre del folder a crear ex: Folder Name
+ */
+const createFolder = async (name, title) => {
+  try {
+    const url = `${aemAssetsUrl}/api/assets/${name}`;
+    const resp = await axios.post(
+      url,
+      {
+        class: "assetFolder",
+        properties: {
+          "jcr:title": title,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Basic ${CREDENTIALS}`,
+        },
+      }
+    );
+
+    return resp.data;
+  } catch (error) {
+    return error;
+  }
+};
+
+const updateMetadata = async (folder, asset, metadata) => {
+  try {
+    const url = `${aemAssetsUrl}/api/assets/${folder}/${asset}`;
+
+    const resp = await axios.put(
+      url,
+      {
+        class: "asset",
+        properties: {
+          metadata: {
+            ...metadata,
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Basic ${CREDENTIALS}`,
+        },
+      }
+    );
+
+    return resp.data;
+  } catch (error) {
+    console.log(error);
+
+    throw new Error("Error updating metadata");
+  }
+};
+
+const deleteResource = async (folder, asset) => {
+  try {
+    const url = `${aemAssetsUrl}/api/assets/${folder}/${asset}`;
+    const resp = await axios.delete(url, {
+      headers: {
+        Authorization: `Basic ${CREDENTIALS}`,
+      },
+    });
+
+    return resp.data;
+  } catch (error) {
+    return error;
+  }
+};
+
 module.exports = {
-  handleStaticImage,
-  handleFileImages,
+  handleAssets,
+  createFolder,
+  updateMetadata,
+  deleteResource,
 };
