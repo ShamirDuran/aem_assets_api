@@ -14,16 +14,29 @@ const CREDENTIALS = Buffer.from(
   "utf8"
 ).toString("base64");
 
+console.log(
+  aemAssetsUrl,
+  aemAssetsPath,
+  aemUsername,
+  aemPassword,
+  DESTIONATION_URL,
+  CREDENTIALS
+);
+
 /**
  * Upload image to AEM Assets
- * @param {*} image Multer file object
+ * @param {*} files Array of files to upload
+ * @param {*} folder Folder where the file will be saved
+ * @param {*} metadata Metadata to save in the asset
  * @returns
  */
-const handleAssets = async (files) => {
+const handleAssets = async (files, folder, metadata) => {
   try {
     if (!files || files.length === 0) {
       throw new Error("No files to upload");
     }
+
+    if (!folder) throw new Error("No folder to upload");
 
     const images = files.map((file) => {
       const {
@@ -43,7 +56,15 @@ const handleAssets = async (files) => {
       };
     });
 
-    const result = await uploadImage(images);
+    const result = await uploadImage(images, folder);
+    if (!result.errors.length) {
+      await Promise.all(
+        images.map(({ fileName }) => {
+          return updateMetadata(folder, fileName, metadata);
+        })
+      );
+    }
+
     return result;
   } catch (err) {
     return err;
@@ -54,13 +75,14 @@ const handleAssets = async (files) => {
 
 /**
  * Upload image to AEM Assets
- * @param {*} image full path to the local file
+ * @param {*} uploadFiles Array of files to upload
+ * @param {*} folder Folder where the file will be saved
  */
-const uploadImage = async (uploadFiles) => {
+const uploadImage = async (uploadFiles, folder) => {
   try {
     const upload = new DirectBinary.DirectBinaryUpload();
     const options = new DirectBinary.DirectBinaryUploadOptions()
-      .withUrl(DESTIONATION_URL)
+      .withUrl(`${DESTIONATION_URL}/${folder}`)
       .withHttpOptions({
         headers: { Authorization: `Basic ${CREDENTIALS}` },
       })
@@ -70,6 +92,30 @@ const uploadImage = async (uploadFiles) => {
     return result;
   } catch (err) {
     return err;
+  }
+};
+
+const getFolders = async () => {
+  try {
+    const url = `${aemAssetsUrl}/api/assets.json`;
+    const resp = await axios.get(url, {
+      headers: {
+        Authorization: `Basic ${CREDENTIALS}`,
+      },
+    });
+
+    if (!resp.data || !resp.data.entities) {
+      return [];
+    }
+
+    return resp.data.entities
+      .filter((entity) => !entity.properties.hidden)
+      .map((entity) => ({
+        id: entity.properties.name,
+        name: entity.properties.name,
+      }));
+  } catch (error) {
+    return error;
   }
 };
 
@@ -98,10 +144,19 @@ const createFolder = async (name, title) => {
 
     return resp.data;
   } catch (error) {
+    console.log(error);
+
     return error;
   }
 };
 
+/**
+ * Actualizar metadata de un asset
+ * @param {*} folder Folder donde se encuentra el asset
+ * @param {*} asset Nombre del asset
+ * @param {*} metadata Metadata a actualizar
+ * @returns
+ */
 const updateMetadata = async (folder, asset, metadata) => {
   try {
     const url = `${aemAssetsUrl}/api/assets/${folder}/${asset}`;
@@ -146,6 +201,7 @@ const deleteResource = async (folder, asset) => {
 
 module.exports = {
   handleAssets,
+  getFolders,
   createFolder,
   updateMetadata,
   deleteResource,

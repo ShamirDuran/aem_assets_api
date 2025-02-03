@@ -8,7 +8,16 @@ const assetsService = require("../services/assets.service");
  */
 const upload = async (req, res, next) => {
   try {
-    res.json(await assetsService.handleAssets(req.files));
+    const { folder, metadata } = req.body;
+    res.json(await assetsService.handleAssets(req.files, folder, metadata));
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getFolders = async (req, res, next) => {
+  try {
+    res.json(await assetsService.getFolders());
   } catch (error) {
     next(error);
   }
@@ -43,6 +52,7 @@ const deleteResource = async (req, res, next) => {
 
 module.exports = {
   upload,
+  getFolders,
   createFolder,
   updateMetadata,
   deleteResource,
