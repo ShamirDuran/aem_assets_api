@@ -27,17 +27,10 @@ console.log(
  * Upload image to AEM Assets
  * @param {*} files Array of files to upload
  * @param {*} folder Folder where the file will be saved
- * @param {*} metadata Metadata to save in the asset
  * @returns
  */
-const handleAssets = async (files, folder, metadata) => {
+const handleAssets = async (files, folder) => {
   try {
-    if (!files || files.length === 0) {
-      throw new Error("No files to upload");
-    }
-
-    if (!folder) throw new Error("No folder to upload");
-
     const images = files.map((file) => {
       const {
         // fieldname, // The name set in the form
@@ -57,14 +50,6 @@ const handleAssets = async (files, folder, metadata) => {
     });
 
     const result = await uploadImage(images, folder);
-    if (!result.errors.length) {
-      await Promise.all(
-        images.map(({ fileName }) => {
-          return updateMetadata(folder, fileName, metadata);
-        })
-      );
-    }
-
     return result;
   } catch (err) {
     return err;
@@ -144,8 +129,6 @@ const createFolder = async (name, title) => {
 
     return resp.data;
   } catch (error) {
-    console.log(error);
-
     return error;
   }
 };

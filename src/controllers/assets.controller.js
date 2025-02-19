@@ -8,8 +8,18 @@ const assetsService = require("../services/assets.service");
  */
 const upload = async (req, res, next) => {
   try {
-    const { folder, metadata } = req.body;
-    res.json(await assetsService.handleAssets(req.files, folder, metadata));
+    const { folder } = req.body;
+    const files = req.files;
+
+    if (!files || !files.length) {
+      return res.status(400).json({ message: "No files provided" });
+    }
+
+    if (!folder) {
+      return res.status(400).json({ message: "No folder provided" });
+    }
+
+    res.json(await assetsService.handleAssets(req.files, folder));
   } catch (error) {
     next(error);
   }
